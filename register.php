@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if (!$stmt) {
 
-            $errors[] = "Database error: " . $conn->error;
+            $errors[] = "A system error occurred. Please try again later.";
 
         } else {
 
@@ -34,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if (!$stmt->execute()) {
 
-                $errors[] = "Database error: " . $stmt->error;
+                $errors[] = "A system error occurred. Please try again later.";
 
             } else {
 
@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     if (!$stmt) {
 
-                        $errors[] = "Database error: " . $conn->error;
+                        $errors[] = "A system error occurred. Please try again later.";
 
                     } else {
 
@@ -87,9 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         } else {
 
-                            $errors[] =
-                                "Registration failed: " .
-                                $stmt->error;
+                            $errors[] = "Registration could not be completed. Please try again.";
                         }
                     }
                 }
@@ -217,7 +215,7 @@ foreach ($errors as $error) {
                 name="first_name"
                 placeholder="Enter your first name"
                 value="<?= htmlspecialchars($_POST['first_name'] ?? '') ?>"
-                minlength="5"
+                minlength="2"
                 required
             >
 
@@ -242,7 +240,7 @@ foreach ($errors as $error) {
                 name="last_name"
                 placeholder="Enter your last name"
                 value="<?= htmlspecialchars($_POST['last_name'] ?? '') ?>"
-                minlength="5"
+                minlength="2"
                 required
             >
 
@@ -369,7 +367,7 @@ foreach ($errors as $error) {
 
             Already have an account?
 
-            <a href="login.html">
+            <a href="login.php">
                 LOGIN
             </a>
 

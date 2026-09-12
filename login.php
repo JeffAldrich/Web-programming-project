@@ -300,11 +300,3 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </body>
 
 </html>
-
-<?php if ($password_error !== ""): ?>
-
-    <p class="login-field-error">
-        ⚠ <?= htmlspecialchars($password_error) ?>
-    </p>
-
-<?php endif; ?>

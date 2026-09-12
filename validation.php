@@ -16,8 +16,8 @@ function validateName(string $value, string $label): ?string
         return "$label is required.";
     }
 
-    if (strlen($value) < 5) {
-        return "$label must be at least 5 characters.";
+    if (strlen($value) < 2) {
+        return "$label must be at least 2 characters.";
     }
 
     if (!preg_match("/^[a-zA-ZÀ-ÿ\s'-]+$/", $value)) {
