@@ -542,15 +542,15 @@ foreach ($inventory as $item) {
             INVENTORY
         </a>
 
-        <a href="#">
+        <a href="orders.php">
             ORDERS
         </a>
 
-        <a href="#">
+        <a href="customers.php">
             CUSTOMERS
         </a>
 
-        <a href="#">
+        <a href="categories.php">
             CATEGORIES
         </a>
 

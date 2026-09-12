@@ -370,7 +370,7 @@ if ($stmt) {
             PRODUCTS
         </a>
 
-        <a href="variants.php">
+        <a href="inventory.php">
             INVENTORY
         </a>
 
