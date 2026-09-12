@@ -165,7 +165,7 @@ if ($order_id) {
                 MY ACCOUNT
             </a>
 
-            <a href="/JAC/user%20details/my%20order.html">
+            <a href="/JAC/user%20details/my%20order.php">
                 MY ORDERS
             </a>
 
@@ -173,7 +173,7 @@ if ($order_id) {
                 MY CART
             </a>
 
-            <a href="/JAC/user%20details/wishlist.html">
+            <a href="/JAC/user%20details/wishlist.php">
                 WISHLIST
             </a>
 
@@ -431,7 +431,6 @@ if ($user_id) {
         SELECT
             id,
             first_name,
-            middle_name,
             last_name,
             email
 
@@ -540,7 +539,7 @@ if ($user_id) {
                 MY ACCOUNT
             </a>
 
-            <a href="/JAC/user%20details/my%20order.html">
+            <a href="/JAC/user%20details/my%20order.php">
                 MY ORDERS
             </a>
 
@@ -548,7 +547,7 @@ if ($user_id) {
                 MY CART
             </a>
 
-            <a href="/JAC/user%20details/wishlist.html">
+            <a href="/JAC/user%20details/wishlist.php">
                 WISHLIST
             </a>
 
@@ -615,23 +614,7 @@ if ($user_id) {
                 <strong>
 
                     <?= htmlspecialchars(
-                        $user["first_name"]
-                    ); ?>
-
-                    <?php if (
-                        !empty(
-                            $user["middle_name"]
-                        )
-                    ): ?>
-
-                        <?= htmlspecialchars(
-                            $user["middle_name"]
-                        ); ?>
-
-                    <?php endif; ?>
-
-                    <?= htmlspecialchars(
-                        $user["last_name"]
+                        $user["first_name"] . " " . $user["last_name"]
                     ); ?>
 
                 </strong>

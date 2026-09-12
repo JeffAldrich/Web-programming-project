@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,7 +17,9 @@
     <!-- HEADER -->
     <header>
 
-        <img src="Images/Final LOGO.svg" alt="JAC Logo" class="logo">
+        <a href="index.php">
+            <img src="Images/Final LOGO.svg" alt="JAC Logo" class="logo">
+        </a>
 
         <nav>
             <a href="#home">HOME</a>
@@ -29,16 +34,18 @@
             <button class="account-button">👤</button>
 
             <div class="account-dropdown">
-                <a href="/JAC/user%20details/my%20account.php">MY ACCOUNT</a>
-                <a href="/JAC/user%20details/my%20order.php">MY ORDERS</a>
-                <a href="/JAC/user%20details/my%20cart.php">MY CART</a>
-                <a href="/JAC/user%20details/wishlist.php">WISHLIST</a>
-                
-            <div class="account-divider"></div>
-            
-            <a href="/JAC/logout.php" class="logout">LOG OUT</a>
-        
-        </div>
+                <?php if (isset($_SESSION["user_id"])): ?>
+                    <a href="user%20details/my%20account.php">MY ACCOUNT</a>
+                    <a href="user%20details/my%20order.php">MY ORDERS</a>
+                    <a href="user%20details/my%20cart.php">MY CART</a>
+                    <a href="user%20details/wishlist.php">WISHLIST</a>
+                    <div class="account-divider"></div>
+                    <a href="logout.php" class="logout">LOG OUT</a>
+                <?php else: ?>
+                    <a href="login.php">LOGIN</a>
+                    <a href="register.php">REGISTER</a>
+                <?php endif; ?>
+            </div>
 
         </div>
 
@@ -156,43 +163,53 @@
         <div class="collection-container">
 
             <article>
-                <img
-                    src="images/single-breasted.jpg"
-                    alt="Single Breasted Suit"
-                >
-                <h3>Single Breasted</h3>
+                <a href="product%20page/product.php?id=1" style="text-decoration: none; color: inherit; display: block;">
+                    <img
+                        src="images/single-breasted.jpg"
+                        alt="Single Breasted Suit"
+                    >
+                    <h3>Single Breasted</h3>
+                </a>
             </article>
 
             <article>
-                <img
-                    src="images/double breasted.jpg"
-                    alt="Double Breasted Suit"
-                >
-                <h3>Double Breasted</h3>
+                <a href="product%20page/product.php?id=2" style="text-decoration: none; color: inherit; display: block;">
+                    <img
+                        src="images/double breasted.jpg"
+                        alt="Double Breasted Suit"
+                    >
+                    <h3>Double Breasted</h3>
+                </a>
             </article>
 
             <article>
-                <img
-                    src="images/Three-Piece Suit.jpg"
-                    alt="Three-Piece Suit"
-                >
-                <h3>Three-Piece</h3>
+                <a href="product%20page/product.php?id=3" style="text-decoration: none; color: inherit; display: block;">
+                    <img
+                        src="images/Three-Piece Suit.jpg"
+                        alt="Three-Piece Suit"
+                    >
+                    <h3>Three-Piece</h3>
+                </a>
             </article>
 
             <article>
-                <img
-                    src="images/peak lapel suit.jpg"
-                    alt="Peak Lapel Suit"
-                >
-                <h3>Peak Lapel</h3>
+                <a href="product%20page/product.php?id=4" style="text-decoration: none; color: inherit; display: block;">
+                    <img
+                        src="images/peak lapel suit.jpg"
+                        alt="Peak Lapel Suit"
+                    >
+                    <h3>Peak Lapel</h3>
+                </a>
             </article>
 
             <article>
-                <img
-                    src="images/shawl lepel suit.jpg"
-                    alt="Shawl Lapel Suit"
-                >
-                <h3>Shawl Lapel</h3>
+                <a href="product%20page/product.php?id=5" style="text-decoration: none; color: inherit; display: block;">
+                    <img
+                        src="images/shawl lepel suit.jpg"
+                        alt="Shawl Lapel Suit"
+                    >
+                    <h3>Shawl Lapel</h3>
+                </a>
             </article>
 
         </div>

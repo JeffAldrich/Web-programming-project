@@ -3,7 +3,7 @@
 require_once "php/db.php";
 
 $sql = "
-    SELECT id, username, email
+    SELECT id, first_name, last_name, email
     FROM users
     ORDER BY id ASC
 ";
@@ -70,7 +70,7 @@ if ($result) {
 
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
+                        <th>Name</th>
                         <th>Email</th>
                     </tr>
 
@@ -87,7 +87,7 @@ if ($result) {
                             </td>
 
                             <td>
-                                <?= htmlspecialchars($user['username']) ?>
+                                <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
                             </td>
 
                             <td>

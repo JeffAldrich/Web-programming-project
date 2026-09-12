@@ -48,17 +48,17 @@ require_once "php/db.php";
 
             <div class="account-dropdown">
 
-                <a href="/JAC/user%20details/my%20account.php">MY ACCOUNT</a>
-
-                <!-- FIXED: was my order.html (dead file) -->
-                <a href="/JAC/user%20details/my%20order.php">MY ORDERS</a>
-
-                <a href="/JAC/user%20details/my%20cart.php">MY CART</a>
-                <a href="/JAC/user%20details/wishlist.php">WISHLIST</a>
-
-                <div class="account-divider"></div>
-
-                <a href="logout.php" class="logout">LOG OUT</a>
+                <?php if (isset($_SESSION["user_id"])): ?>
+                    <a href="/JAC/user%20details/my%20account.php">MY ACCOUNT</a>
+                    <a href="/JAC/user%20details/my%20order.php">MY ORDERS</a>
+                    <a href="/JAC/user%20details/my%20cart.php">MY CART</a>
+                    <a href="/JAC/user%20details/wishlist.php">WISHLIST</a>
+                    <div class="account-divider"></div>
+                    <a href="/JAC/logout.php" class="logout">LOG OUT</a>
+                <?php else: ?>
+                    <a href="/JAC/login.php">LOGIN</a>
+                    <a href="/JAC/register.php">REGISTER</a>
+                <?php endif; ?>
 
             </div>
 
