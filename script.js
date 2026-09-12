@@ -265,13 +265,10 @@ document.addEventListener('submit', function (e) {
 
       showToast(result.message, result.success)
 
-      if (result.success && typeof result.count !== 'undefined') {
-        var badges = document.querySelectorAll(
-          '.cart-number, .notification-number'
-        )
-        badges.forEach(function (badge) {
-          badge.textContent = result.count
-        })
+      if (result.success) {
+        if (typeof window.refreshAccountCounts === 'function') {
+          window.refreshAccountCounts()
+        }
       }
 
       if (button) {
@@ -295,192 +292,118 @@ document.addEventListener('submit', function (e) {
    counts appear inside the dropdown
 ========================================================= */
 
-document.addEventListener('DOMContentLoaded', function () {
-
-  var accountButton = document.querySelector('.account-button')
-
-  var accountMenu = document.querySelector('.account-menu')
-
-  var accountDropdown = document.querySelector('.account-dropdown')
-
-  if (!accountButton || !accountMenu || !accountDropdown) {
-    return
-  }
+(function () {
 
   var counts = { orders: 0, history: 0, cart: 0, wishlist: 0, total: 0 }
 
-  function getLink (keyword) {
+  /* ---------- helpers ---------- */
+
+  function getLink (accountDropdown, keyword) {
+    if (!accountDropdown) return null
     var links = accountDropdown.querySelectorAll('a')
-
     for (var i = 0; i < links.length; i++) {
-      var href = decodeURIComponent(links[i].getAttribute('href') || '')
-
-      if (href.indexOf(keyword) !== -1) {
-        return links[i]
-      }
+      var href = decodeURIComponent(links[i].getAttribute('href') || '').toLowerCase()
+      if (href.indexOf(keyword.toLowerCase()) !== -1) return links[i]
     }
-
     return null
   }
 
-  /* Insert a MY HISTORY link into the dropdown if the page
-     doesn't have one (covers index, store, legal, etc.) */
-  function ensureHistoryLink () {
-    var existing = getLink('view=history')
-
-    if (existing) {
-      return existing
-    }
-
-    var ordersLink = getLink('my order')
-
-    if (!ordersLink) {
-      return null
-    }
-
-    var historyLink = document.createElement('a')
-
-    historyLink.href = '/JAC/user%20details/my%20order.php?view=history'
-
-    historyLink.textContent = 'MY HISTORY'
-
-    ordersLink.insertAdjacentElement('afterend', historyLink)
-
-    return historyLink
-  }
-
   function addCountToLink (link, count, className) {
-    if (!link || count <= 0) {
-      return
-    }
-
+    if (!link || count <= 0) return
     var existing = link.querySelector('.' + className)
-
     if (!existing) {
       existing = document.createElement('span')
-
       existing.className = className
-
       link.appendChild(existing)
     }
-
     existing.textContent = count
   }
 
-  function removeAllCounts () {
-    var spans = accountDropdown.querySelectorAll(
+  function removeDropdownCounts (accountDropdown) {
+    if (!accountDropdown) return
+    accountDropdown.querySelectorAll(
       '.cart-number, .orders-number, .history-number, .wishlist-number'
-    )
-
-    spans.forEach(function (s) {
-      s.remove()
-    })
+    ).forEach(function (s) { s.remove() })
   }
 
-  function renderMenuCounts () {
-    removeAllCounts()
-
-    addCountToLink(getLink('my cart'), counts.cart, 'cart-number')
-
-    addCountToLink(getLink('my order'), counts.orders, 'orders-number')
-
-    addCountToLink(ensureHistoryLink(), counts.history, 'history-number')
-
-    addCountToLink(getLink('wishlist'), counts.wishlist, 'wishlist-number')
-  }
-
-  function showCircleBadge () {
-    removeAllCounts()
-
+  function updateCircleBadge (accountButton) {
+    if (!accountButton) return
+    var badge = accountButton.querySelector('.notification-number')
     if (counts.total <= 0) {
+      if (badge) badge.remove()
       return
     }
-
-    var badge = accountButton.querySelector('.notification-number')
-
     if (!badge) {
       badge = document.createElement('span')
-
       badge.className = 'notification-number'
-
       accountButton.appendChild(badge)
     }
-
     badge.textContent = counts.total
   }
 
-  function hideCircleBadge () {
-    var badge = accountButton.querySelector('.notification-number')
-
-    if (badge) {
-      badge.remove()
-    }
+  function renderMenuCounts (accountDropdown) {
+    if (!accountDropdown) return
+    removeDropdownCounts(accountDropdown)
+    addCountToLink(getLink(accountDropdown, 'my cart'),  counts.cart,    'cart-number')
+    addCountToLink(getLink(accountDropdown, 'my order'), counts.orders,  'orders-number')
+    addCountToLink(getLink(accountDropdown, 'wishlist'), counts.wishlist, 'wishlist-number')
   }
 
-  fetch('/JAC/php/get_counts.php')
-    .then(function (r) {
-      return r.json()
+  function updateAllUI () {
+    var accountButton   = document.querySelector('.account-button')
+    var accountDropdown = document.querySelector('.account-dropdown')
+
+    updateCircleBadge(accountButton)
+    renderMenuCounts(accountDropdown)
+
+    var sidebarCart = document.querySelector('.sidebar-nav a[href*="my%20cart"] .sidebar-count')
+    if (sidebarCart) sidebarCart.textContent = counts.cart
+    var sidebarWishlist = document.querySelector('.sidebar-nav a[href*="wishlist"] .sidebar-count')
+    if (sidebarWishlist) sidebarWishlist.textContent = counts.wishlist
+  }
+
+  /* ---------- main fetch ---------- */
+
+  window.refreshAccountCounts = function () {
+    var accountButton = document.querySelector('.account-button')
+
+    return fetch('/JAC/php/get_counts.php')
+      .then(function (r) { return r.json() })
+      .then(function (data) {
+        if (!data || !data.logged_in) {
+          counts = { orders: 0, history: 0, cart: 0, wishlist: 0, total: 0 }
+          updateCircleBadge(accountButton)
+          return
+        }
+
+        counts = data
+        updateAllUI()
+      })
+      .catch(function () {})
+  }
+
+  /* ---------- wire up after DOM ready ---------- */
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var accountButton   = document.querySelector('.account-button')
+    var accountMenu     = document.querySelector('.account-menu')
+    var accountDropdown = document.querySelector('.account-dropdown')
+
+    /* initial load: fetch counts and show both circle badge and dropdown counts */
+    window.refreshAccountCounts()
+
+    if (!accountMenu) return
+
+    /* Ensure counts are synced whenever dropdown is toggled */
+    var observer = new MutationObserver(function () {
+      updateAllUI()
     })
-    .then(function (data) {
-      if (!data.logged_in) {
-        return
-      }
 
-      counts = data
-
-      showCircleBadge()
-    })
-    .catch(function () {})
-
-  var observer = new MutationObserver(function () {
-    if (accountMenu.classList.contains('active')) {
-      hideCircleBadge()
-      renderMenuCounts()
-    } else {
-      showCircleBadge()
-    }
+    observer.observe(accountMenu, { attributes: true, attributeFilter: ['class'] })
   })
+})()
 
-  observer.observe(accountMenu, {
-    attributes: true,
-    attributeFilter: ['class']
-  })
-})
 
-/* =========================================================
-   LOGGED-OUT DROPDOWN — LOG OUT becomes LOG IN + REGISTER
-========================================================= */
-
-document.addEventListener('DOMContentLoaded', function () {
-
-  fetch('/JAC/php/get_counts.php')
-    .then(function (r) {
-      return r.json()
-    })
-    .then(function (data) {
-      if (data.logged_in) {
-        return
-      }
-
-      var logoutLink = document.querySelector('.account-dropdown .logout')
-
-      if (!logoutLink) {
-        return
-      }
-
-      /* Turn LOG OUT into LOG IN */
-      logoutLink.textContent = 'LOG IN'
-      logoutLink.href = '/JAC/login.php'
-      logoutLink.classList.remove('logout')
-
-      /* Add REGISTER right below it */
-      var registerLink = document.createElement('a')
-      registerLink.href = '/JAC/register.php'
-      registerLink.textContent = 'REGISTER'
-      logoutLink.insertAdjacentElement('afterend', registerLink)
-    })
-    .catch(function () {})
-})
 
 /* =========================================================
    NEWSLETTER SUBSCRIBE (AJAX + toast)

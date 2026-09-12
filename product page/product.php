@@ -121,14 +121,17 @@ foreach ($variants as $variant) {
 
         <div class="account-dropdown">
 
-            <a href="../user%20details/my%20account.php">MY ACCOUNT</a>
-            <a href="../user%20details/my%20order.php">MY ORDERS</a>
-            <a href="../user%20details/my%20cart.php">MY CART</a>
-            <a href="../user%20details/wishlist.php">WISHLIST</a>
-
-            <div class="account-divider"></div>
-
-            <a href="../logout.php" class="logout">LOG OUT</a>
+            <?php if ($is_logged_in): ?>
+                <a href="../user%20details/my%20account.php">MY ACCOUNT</a>
+                <a href="../user%20details/my%20order.php">MY ORDERS</a>
+                <a href="../user%20details/my%20cart.php">MY CART</a>
+                <a href="../user%20details/wishlist.php">WISHLIST</a>
+                <div class="account-divider"></div>
+                <a href="../logout.php" class="logout">LOG OUT</a>
+            <?php else: ?>
+                <a href="../login.php">LOGIN</a>
+                <a href="../register.php">REGISTER</a>
+            <?php endif; ?>
 
         </div>
 
@@ -494,11 +497,10 @@ foreach ($variants as $variant) {
 
                 showToast(result.message, result.success);
 
-                if (result.success && typeof result.count !== "undefined") {
-                    var badges = document.querySelectorAll(".cart-number, .notification-number");
-                    badges.forEach(function (badge) {
-                        badge.textContent = result.count;
-                    });
+                if (result.success) {
+                    if (typeof window.refreshAccountCounts === 'function') {
+                        window.refreshAccountCounts();
+                    }
                 }
             })
             .catch(function () {
@@ -596,11 +598,10 @@ foreach ($variants as $variant) {
                 button.textContent = "♥";
             }
 
-            if (result.success && typeof result.count !== "undefined") {
-                var badges = document.querySelectorAll(".wishlist-number");
-                badges.forEach(function (badge) {
-                    badge.textContent = result.count;
-                });
+            if (result.success) {
+                if (typeof window.refreshAccountCounts === 'function') {
+                    window.refreshAccountCounts();
+                }
             }
         })
         .catch(function () {
