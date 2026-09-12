@@ -1,0 +1,505 @@
+/* =========================================
+   ACCOUNT DASHBOARD LAYOUT
+========================================= */
+.account-layout {
+  display: flex;
+  gap: 30px;
+  max-width: 1100px;
+  margin: 0 auto;
+  align-items: stretch;
+}
+
+/* =========================================
+   SIDEBAR
+========================================= */
+.account-sidebar {
+  width: 270px;
+  flex-shrink: 0;
+  background-color: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-user {
+  padding: 35px 25px;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+.sidebar-avatar {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 15px;
+  border: 1px solid #666;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+}
+.sidebar-name {
+  font-size: 14px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+.sidebar-email {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+  word-break: break-all;
+}
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 15px 0;
+  background: none;
+  border-radius: 0;
+  gap: 0;
+}
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 25px;
+  color: #ccc;
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 1px;
+  border-left: 3px solid transparent;
+}
+.sidebar-nav a:hover {
+  color: white;
+  background-color: #1a1a1a;
+}
+.sidebar-nav a.active {
+  color: white;
+  background-color: #1a1a1a;
+  border-left-color: white;
+}
+.sidebar-count {
+  min-width: 22px;
+  padding: 2px 7px;
+  border: none;
+  border-radius: 20px;
+  background-color: #c0392b;
+  color: white;
+  font-size: 11px;
+  text-align: center;
+  font-weight: bold;
+}
+.sidebar-logout {
+  border-top: 1px solid #333;
+  padding: 10px 0;
+  margin-top: auto;
+}
+.sidebar-logout a {
+  display: block;
+  padding: 14px 25px;
+  color: #888;
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.sidebar-logout a:hover {
+  color: white;
+}
+
+/* =========================================
+   CONTENT COLUMN — fixed height, all pages equal
+========================================= */
+.account-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 40px 40px;
+  height: 520px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.account-content .account-error,
+.account-content .account-success {
+  max-width: none;
+  margin: 0 0 20px;
+}
+
+.account-page,
+.cart-page {
+  padding: 15px 10% 40px;
+}
+
+/* =========================================
+   PROFILE TAB
+========================================= */
+.account-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+.account-stat {
+  flex: 1;
+  padding: 25px;
+  background: white;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+.account-stat strong {
+  display: block;
+  font-size: 30px;
+  margin-bottom: 5px;
+}
+.account-stat span {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #777;
+}
+.account-section-card {
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ddd;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.account-section-head {
+  padding: 25px 40px;
+  border-bottom: 1px solid #ddd;
+}
+.account-section-head h3 {
+  font-size: 15px;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+}
+.account-section-head p {
+  margin: 0;
+  font-size: 13px;
+  color: #777;
+}
+.account-section-card .account-form {
+  max-width: none;
+  margin: 0;
+  border: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.account-field-full {
+  grid-column: 1 / -1;
+}
+
+/* SECURITY TAB */
+.account-form-plain {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 420px;
+}
+.account-form-plain .save-account-button {
+  width: 100%;
+  margin-top: 5px;
+  grid-column: auto;
+}
+
+/* =========================================
+   MY CART
+========================================= */
+.cart-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.cart-container h1 {
+  margin-bottom: 10px;
+}
+.cart-intro {
+  margin-bottom: 20px;
+}
+.cart-items {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin: 10px auto 0;
+}
+.cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+  margin: 15px 0 0;
+  padding: 0;
+  max-width: none;
+  background: transparent;
+  border: none;
+}
+.cart-total h2 {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+.cart-total .cart-price {
+  margin: 0;
+  font-size: 18px;
+}
+.cart-total .checkout-button {
+  margin: 0;
+}
+
+/* =========================================
+   WISHLIST — rows like cart, scrollable
+========================================= */
+.account-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.account-container h1 {
+  margin-bottom: 10px;
+}
+.wishlist-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-right: 10px;
+  margin-top: 15px;
+}
+.wishlist-card {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 25px;
+  background-color: white;
+  border: 1px solid #ddd;
+}
+.wishlist-card > a {
+  width: 180px;
+  height: 220px;
+  flex-shrink: 0;
+  display: block;
+  overflow: hidden;
+}
+.wishlist-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wishlist-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.wishlist-info .account-action,
+.wishlist-info form {
+  margin: 0;
+}
+
+.wishlist-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.wishlist-info h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.wishlist-price {
+  font-weight: bold;
+  margin: 0;
+  font-size: 16px;
+}
+.wishlist-info .account-action {
+  padding: 10px 20px;
+  font-size: 12px;
+  margin: 0;
+}
+.wishlist-info form {
+  margin: 0;
+}
+.wishlist-remove {
+  padding: 10px 20px;
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.wishlist-remove:hover {
+  background-color: black;
+  color: white;
+}
+
+/* =========================================
+   EMPTY STATES
+========================================= */
+.empty-cart,
+.empty-orders {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+}
+
+/* =========================================
+   MY ORDERS — fill the fixed column
+========================================= */
+.account-content .orders-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.account-content .orders-list {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
+/* =========================================
+   SLIM SCROLLBARS
+========================================= */
+.cart-items::-webkit-scrollbar,
+.wishlist-grid::-webkit-scrollbar,
+.account-section-card .account-form::-webkit-scrollbar,
+.account-content::-webkit-scrollbar,
+.account-content .orders-list::-webkit-scrollbar {
+  width: 6px;
+}
+.cart-items::-webkit-scrollbar-track,
+.wishlist-grid::-webkit-scrollbar-track,
+.account-section-card .account-form::-webkit-scrollbar-track,
+.account-content::-webkit-scrollbar-track,
+.account-content .orders-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+.cart-items::-webkit-scrollbar-thumb,
+.wishlist-grid::-webkit-scrollbar-thumb,
+.account-section-card .account-form::-webkit-scrollbar-thumb,
+.account-content::-webkit-scrollbar-thumb,
+.account-content .orders-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+@media (max-width: 900px) {
+  .account-layout {
+    flex-direction: column;
+  }
+  .account-sidebar {
+    width: 100%;
+  }
+  .account-stats {
+    flex-direction: column;
+  }
+  .account-content {
+    height: auto;
+    padding: 15px 20px 25px;
+  }
+  .account-section-head,
+  .account-form-plain {
+    padding: 25px;
+  }
+  .cart-total {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .wishlist-card {
+    flex-direction: column;
+  }
+  .wishlist-card > a {
+    width: 100%;
+    height: auto;
+  }
+  .wishlist-card img {
+    height: auto;
+  }
+}
+
+/* SECURITY TAB — stop flex from squishing the cards */
+.account-content .account-section-card {
+    flex: 0 0 auto;
+}
+
+/* =========================================
+   LOGGED-OUT STATE — matching card
+========================================= */
+.logged-out-card {
+    max-width: 520px;
+    margin: 30px auto 0;
+    padding: 50px 40px;
+    background: white;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.logged-out-avatar {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    border: 1px solid #666;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.logged-out-card h2 {
+    font-size: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.logged-out-card p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.logged-out-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.logged-out-actions a {
+    padding: 14px 30px;
+    background: black;
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.logged-out-actions a:hover {
+    background: #555;
+}
+
+.logged-out-actions a.secondary {
+    background: white;
+    color: black;
+    border: 1px solid black;
+}
+
+.logged-out-actions a.secondary:hover {
+    background: black;
+    color: white;
+}
