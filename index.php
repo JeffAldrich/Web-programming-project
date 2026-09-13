@@ -1,5 +1,24 @@
 <?php
+
 session_start();
+
+/*
+    WELCOME POPUP (NEW)
+
+    grabs the flag set by login.php,
+    then clears it so the popup
+    only shows ONCE per login
+*/
+
+ $welcome_popup = null;
+
+if (isset($_SESSION["welcome_popup"])) {
+
+    $welcome_popup = $_SESSION["welcome_popup"];
+
+    unset($_SESSION["welcome_popup"]);
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -423,6 +442,97 @@ session_start();
         </div>
 
     </footer>
+
+
+        <!-- WELCOME POPUP -->
+    <?php if ($welcome_popup !== null): ?>
+
+        <div class="welcome-overlay" id="welcomeOverlay">
+
+            <div class="welcome-popup">
+
+                <button class="welcome-close" id="welcomeClose" aria-label="Close">
+                    ×
+                </button>
+
+                <?php if ($welcome_popup === "back"): ?>
+
+                    <p class="welcome-label">WELCOME BACK</p>
+
+                    <h3>
+                        <?= strtoupper(htmlspecialchars($_SESSION["first_name"] ?? "FRIEND")) ?>
+                    </h3>
+
+                    <hr class="welcome-divider">
+
+                    <p class="welcome-text">
+                        It's great to see you again.<br>
+                        Your timeless collection awaits.
+                    </p>
+
+                <?php else: ?>
+
+                    <p class="welcome-label">WELCOME TO JAC</p>
+
+                    <h3>
+                        <?= strtoupper(htmlspecialchars($_SESSION["first_name"] ?? "FRIEND")) ?>
+                    </h3>
+
+                    <hr class="welcome-divider">
+
+                    <p class="welcome-text">
+                        Thank you for joining us.<br>
+                        Discover the collection made to last.
+                    </p>
+
+                <?php endif; ?>
+
+                <p class="welcome-signature">— JAC —</p>
+
+                <button class="welcome-continue" id="welcomeContinue">
+                    CONTINUE SHOPPING
+                </button>
+
+            </div>
+
+        </div>
+
+        <script>
+            (function () {
+
+                var overlay = document.getElementById("welcomeOverlay");
+
+                function closeWelcome() {
+                    overlay.classList.add("is-closing");
+                    setTimeout(function () {
+                        overlay.remove();
+                    }, 250);
+                }
+
+                document.getElementById("welcomeContinue")
+                    .addEventListener("click", closeWelcome);
+
+                document.getElementById("welcomeClose")
+                    .addEventListener("click", closeWelcome);
+
+                /* click on the dark backdrop closes it too */
+                overlay.addEventListener("click", function (event) {
+                    if (event.target === overlay) {
+                        closeWelcome();
+                    }
+                });
+
+                /* Escape key closes it */
+                document.addEventListener("keydown", function (event) {
+                    if (event.key === "Escape") {
+                        closeWelcome();
+                    }
+                });
+
+            })();
+        </script>
+
+    <?php endif; ?>
 
 
     <script src="script.js"></script>

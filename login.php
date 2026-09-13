@@ -4,9 +4,9 @@ session_start();
 
 require_once "php/db.php";
 
-$email_error = "";
-$password_error = "";
-$general_error = "";
+ $email_error = "";
+ $password_error = "";
+ $general_error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
@@ -53,7 +53,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 first_name,
                 last_name,
                 email,
-                password
+                password,
+                last_login
             FROM users
             WHERE email = ?
             LIMIT 1
@@ -111,6 +112,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         $_SESSION["email"] =
                             $user["email"];
+
+
+                        /*
+                            WELCOME BACK CHECK (NEW)
+
+                            last_login is NULL      -> first time logging in
+                            last_login has a date   -> returning user
+                        */
+
+                        if ($user["last_login"] === null) {
+
+                            $_SESSION["welcome_popup"] = "first";
+
+                        } else {
+
+                            $_SESSION["welcome_popup"] = "back";
+                        }
+
+
+                        /*
+                            UPDATE last_login (NEW)
+
+                            saves this login, so the NEXT
+                            login shows the welcome back popup
+                        */
+
+                        $stmt_update = $conn->prepare("
+                            UPDATE users
+                            SET last_login = NOW()
+                            WHERE id = ?
+                        ");
+
+                        $stmt_update->bind_param(
+                            "i",
+                            $user["id"]
+                        );
+
+                        $stmt_update->execute();
 
 
                         /*

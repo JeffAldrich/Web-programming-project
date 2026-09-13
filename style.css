@@ -3385,3 +3385,124 @@ footer {
     padding: 25px;
   }
 }
+
+/* ============================================
+   WELCOME POPUP
+   ============================================ */
+
+.welcome-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: welcomeFade 0.3s ease both;
+}
+
+.welcome-popup {
+    position: relative;
+    background: #ffffff;
+    width: min(420px, calc(100% - 40px));
+    padding: 56px 44px 44px;
+    text-align: center;
+    border-top: 3px solid #b8965a; /* gold accent — change to your brand color */
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    animation: welcomeSlide 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.welcome-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    line-height: 1;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.welcome-close:hover {
+    color: #111;
+}
+
+.welcome-label {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: #b8965a;
+    margin: 0 0 14px;
+}
+
+.welcome-popup h3 {
+    font-size: 26px;
+    letter-spacing: 3px;
+    margin: 0 0 18px;
+    color: #111;
+}
+
+.welcome-divider {
+    width: 40px;
+    height: 1px;
+    background: #b8965a;
+    border: none;
+    margin: 0 auto 18px;
+}
+
+.welcome-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #444;
+    margin: 0;
+}
+
+.welcome-signature {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #888;
+    margin: 18px 0 28px;
+}
+
+.welcome-continue {
+    display: inline-block;
+    width: 100%;
+    padding: 14px;
+    background: #111;
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: background 0.25s ease, letter-spacing 0.25s ease;
+}
+
+.welcome-continue:hover {
+    background: #b8965a;
+    letter-spacing: 4px;
+}
+
+/* animations */
+@keyframes welcomeFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes welcomeSlide {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* closing */
+.welcome-overlay.is-closing {
+    animation: welcomeFadeOut 0.25s ease both;
+}
+
+@keyframes welcomeFadeOut {
+    to { opacity: 0; }
+}
