@@ -50,5 +50,5 @@ Admin account:
 
 http://localhost/JAC/admin/login.php
 
-admin@jac.com
-admin12345
+gmail: admin@jac.com
+password: admin12345
