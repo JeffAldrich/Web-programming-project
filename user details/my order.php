@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 session_start();
 
@@ -48,6 +48,8 @@ if ($is_logged_in) {
         SELECT
             id,
             total_amount,
+            payment_method,
+            payment_reference,
             status,
             shipping_name,
             created_at
@@ -398,6 +400,19 @@ if (!empty($all_ids)) {
 
                                 </div>
 
+                                <div class="order-status-row" style="margin-top: 6px; font-size: 13px;">
+
+                                    <span class="order-label">PAYMENT</span>
+
+                                    <span style="font-weight: 500;">
+                                        <?= htmlspecialchars($order["payment_method"] ?? "Cash on Delivery"); ?>
+                                        <?php if (!empty($order["payment_reference"])): ?>
+                                            <span style="color: #666; font-size: 12px; margin-left: 5px;">(Ref: <?= htmlspecialchars($order["payment_reference"]); ?>)</span>
+                                        <?php endif; ?>
+                                    </span>
+
+                                </div>
+
 
                                 <div class="order-items">
 
@@ -538,6 +553,16 @@ if (!empty($all_ids)) {
                                             </form>
 
                                         </div>
+
+                                    <?php elseif (in_array($status, ["Pending", "Processing"])): ?>
+
+                                        <button
+                                            type="button"
+                                            class="cancel-order-btn"
+                                            data-order-id="<?= $order_id; ?>"
+                                        >
+                                            CANCEL ORDER
+                                        </button>
 
                                     <?php endif; ?>
 
@@ -955,10 +980,167 @@ if (!empty($all_ids)) {
 
 }
 
+
+.cancel-order-btn {
+    padding: 10px 20px;
+    background: white;
+    color: #c0392b;
+    border: 1.5px solid #c0392b;
+    cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 1px;
+    font-family: inherit;
+    transition: background 0.2s, color 0.2s;
+}
+
+.cancel-order-btn:hover {
+    background: #c0392b;
+    color: white;
+}
+
+/* Cancel Confirmation Modal */
+#cancel-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+#cancel-modal-overlay.open {
+    display: flex;
+}
+
+#cancel-modal {
+    background: #fff;
+    padding: 36px 32px 28px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+}
+
+#cancel-modal h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+}
+
+#cancel-modal p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 26px;
+    line-height: 1.6;
+}
+
+.cancel-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+#cancel-modal-confirm {
+    padding: 11px 28px;
+    background: #c0392b;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-family: inherit;
+}
+
+#cancel-modal-confirm:hover { background: #a93226; }
+
+#cancel-modal-dismiss {
+    padding: 11px 28px;
+    background: white;
+    color: #333;
+    border: 1.5px solid #aaa;
+    cursor: pointer;
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-family: inherit;
+}
+
+#cancel-modal-dismiss:hover { background: #f5f5f5; }
 </style>
 
+<!-- Cancel Confirmation Modal -->
+<div id="cancel-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="cancel-modal-title">
+    <div id="cancel-modal">
+        <h3 id="cancel-modal-title">Cancel Order?</h3>
+        <p id="cancel-modal-text">Are you sure you want to cancel Order <strong id="cancel-order-num"></strong>?<br>This action cannot be undone.</p>
+        <div class="cancel-modal-actions">
+            <button id="cancel-modal-confirm">YES, CANCEL</button>
+            <button id="cancel-modal-dismiss">KEEP ORDER</button>
+        </div>
+    </div>
+</div>
 
 <script src="../script.js?v=3"></script>
+
+<script>
+(function () {
+    const overlay    = document.getElementById("cancel-modal-overlay");
+    const numEl      = document.getElementById("cancel-order-num");
+    const confirmBtn = document.getElementById("cancel-modal-confirm");
+    const dismissBtn = document.getElementById("cancel-modal-dismiss");
+    let pendingOrderId = null;
+
+    function openModal(orderId) {
+        pendingOrderId = orderId;
+        numEl.textContent = "#" + orderId;
+        overlay.classList.add("open");
+    }
+
+    function closeModal() {
+        overlay.classList.remove("open");
+        pendingOrderId = null;
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "YES, CANCEL";
+    }
+
+    document.querySelectorAll(".cancel-order-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            openModal(btn.dataset.orderId);
+        });
+    });
+
+    dismissBtn.addEventListener("click", closeModal);
+
+    overlay.addEventListener("click", function (e) {
+        if (e.target === overlay) closeModal();
+    });
+
+    confirmBtn.addEventListener("click", function () {
+        if (!pendingOrderId) return;
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Cancelling\u2026";
+
+        fetch("../php/cancel_order.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "order_id=" + encodeURIComponent(pendingOrderId)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            closeModal();
+            if (data.ok) {
+                window.location.reload();
+            } else {
+                alert(data.message || "Could not cancel order.");
+            }
+        })
+        .catch(function () {
+            closeModal();
+            alert("Network error. Please try again.");
+        });
+    });
+})();
+</script>
 
 </body>
 

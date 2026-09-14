@@ -44,6 +44,20 @@ $shipping_city = trim($_POST["shipping_city"] ?? "");
 $shipping_province = trim($_POST["shipping_province"] ?? "");
 $shipping_postal_code = trim($_POST["shipping_postal_code"] ?? "");
 
+$payment_method = trim($_POST["payment_method"] ?? "GCash");
+$payment_reference = trim($_POST["payment_reference"] ?? "");
+$payment_proof_filename = null;
+
+$allowed_payment_methods = [
+    "GCash",
+    "Maya",
+    "Bank Transfer"
+];
+
+if (!in_array($payment_method, $allowed_payment_methods, true)) {
+    die("Invalid payment method selected. Please choose GCash, Maya, or Bank Transfer.");
+}
+
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +80,54 @@ if (
 if (!filter_var($shipping_email, FILTER_VALIDATE_EMAIL)) {
     die("Please enter a valid email address.");
 }
+
+/*
+| Validate payment proof & reference for online payments
+*/
+if ($payment_reference === "") {
+    die("Please provide the transaction reference number for your " . htmlspecialchars($payment_method) . " payment.");
+}
+
+if (!isset($_FILES["payment_proof"]) || $_FILES["payment_proof"]["error"] !== UPLOAD_ERR_OK) {
+    die("Please upload a clear screenshot or photo of your payment receipt as proof.");
+}
+
+$file = $_FILES["payment_proof"];
+
+// Max 5MB
+if ($file["size"] > 5 * 1024 * 1024) {
+    die("Payment proof image must be under 5MB.");
+}
+
+// Check mime type
+$finfo = new finfo(FILEINFO_MIME_TYPE);
+$mime = $finfo->file($file["tmp_name"]);
+
+$allowed_mimes = [
+    "image/jpeg" => "jpg",
+    "image/png"  => "png",
+    "image/webp" => "webp"
+];
+
+if (!array_key_exists($mime, $allowed_mimes)) {
+    die("Invalid payment proof format. Please upload a JPG, PNG, or WEBP image.");
+}
+
+$ext = $allowed_mimes[$mime];
+$upload_dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . "uploads" . DIRECTORY_SEPARATOR . "receipts";
+
+if (!is_dir($upload_dir)) {
+    mkdir($upload_dir, 0777, true);
+}
+
+$unique_name = "proof_u" . $user_id . "_" . time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
+$target_path = $upload_dir . DIRECTORY_SEPARATOR . $unique_name;
+
+if (!move_uploaded_file($file["tmp_name"], $target_path)) {
+    die("Failed to save payment proof. Please try again.");
+}
+
+$payment_proof_filename = $unique_name;
 
 
 /*
@@ -289,6 +351,9 @@ try {
         (
             user_id,
             total_amount,
+            payment_method,
+            payment_reference,
+            payment_proof,
             status,
             shipping_name,
             shipping_email,
@@ -298,7 +363,7 @@ try {
             shipping_province,
             shipping_postal_code
         )
-        VALUES (?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
@@ -308,9 +373,12 @@ try {
     }
 
     $stmt->bind_param(
-        "idsssssss",
+        "idssssssssss",
         $user_id,
         $order_total,
+        $payment_method,
+        $payment_reference,
+        $payment_proof_filename,
         $shipping_name,
         $shipping_email,
         $shipping_phone,
