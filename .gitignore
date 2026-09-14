@@ -1,4 +1,4 @@
-# OS files
+﻿# OS files
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -18,3 +18,7 @@ config.local.php
 
 # Node (if ever used)
 node_modules/
+
+# User uploads (receipts, temporary files)
+uploads/receipts/*
+!uploads/receipts/.gitkeep

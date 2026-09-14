@@ -5,7 +5,7 @@ session_start();
 require_once "../php/db.php";
 
 if (!isset($_SESSION["admin_id"])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit;
 }
 
@@ -29,6 +29,9 @@ $stmt = $conn->prepare("
         orders.id,
         orders.user_id,
         orders.total_amount,
+        orders.payment_method,
+        orders.payment_reference,
+        orders.payment_proof,
         orders.status,
         orders.shipping_name,
         orders.shipping_email,
@@ -486,9 +489,75 @@ foreach ($order_items as $item) {
 
             </div>
 
+            <div class="info-box">
+
+                <span>
+                    Payment Method
+                </span>
+
+                <strong>
+                    <?= htmlspecialchars($order["payment_method"] ?? "Cash on Delivery"); ?>
+                </strong>
+
+            </div>
+
+            <div class="info-box">
+
+                <span>
+                    Reference No.
+                </span>
+
+                <strong>
+                    <?= !empty($order["payment_reference"]) ? htmlspecialchars($order["payment_reference"]) : "—"; ?>
+                </strong>
+
+            </div>
+
         </div>
 
     </div>
+
+
+    <!-- PAYMENT PROOF INSPECTION -->
+    <?php if (!empty($order["payment_proof"])): ?>
+
+        <div class="card">
+
+            <h2>
+                PAYMENT PROOF / RECEIPT
+            </h2>
+
+            <div style="display: flex; gap: 25px; align-items: flex-start; flex-wrap: wrap;">
+
+                <div>
+                    <a href="../uploads/receipts/<?= htmlspecialchars($order["payment_proof"]); ?>" target="_blank" title="Click to view full receipt image">
+                        <img
+                            src="../uploads/receipts/<?= htmlspecialchars($order["payment_proof"]); ?>"
+                            alt="Payment Receipt"
+                            style="max-width: 250px; max-height: 250px; object-fit: contain; border: 1px solid #ddd; padding: 4px; background: #fff; display: block; border-radius: 4px;"
+                        >
+                    </a>
+                </div>
+
+                <div style="font-size: 13px; line-height: 1.8;">
+                    <p><strong>Payment Method:</strong> <?= htmlspecialchars($order["payment_method"]); ?></p>
+                    <p><strong>Reference Number:</strong> <code style="background: #eee; padding: 3px 8px; font-size: 14px; font-weight: bold;"><?= htmlspecialchars($order["payment_reference"] ?? ""); ?></code></p>
+                    <p style="margin-top: 10px;">
+                        <a
+                            href="../uploads/receipts/<?= htmlspecialchars($order["payment_proof"]); ?>"
+                            target="_blank"
+                            style="display: inline-block; padding: 8px 16px; background: #111; color: #fff; text-decoration: none; font-size: 12px; letter-spacing: 1px;"
+                        >
+                            VIEW FULL RECEIPT ↗
+                        </a>
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    <?php endif; ?>
 
 
     <!-- UPDATE STATUS -->

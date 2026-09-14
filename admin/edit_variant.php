@@ -5,7 +5,7 @@ session_start();
 require_once "../php/db.php";
 
 if (!isset($_SESSION["admin_id"])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit;
 }
 
@@ -113,8 +113,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "Please select a product.";
 
     } elseif ($size === "") {
-
-        $error = "Please select a size.";
+        $stmt_c = $conn->prepare("SELECT c.name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?");
+        $stmt_c->bind_param("i", $product_id);
+        $stmt_c->execute();
+        $cat_row = $stmt_c->get_result()->fetch_assoc();
+        $stmt_c->close();
+        if (!$cat_row || strtolower(trim($cat_row["name"] ?? "")) !== "accessories") {
+            $error = "Please select a size.";
+        } else {
+            $size = "N/A";
+        }
 
     } elseif ($color === "") {
 
@@ -655,11 +663,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         SIZE
                     </label>
 
-                    <select
-                        name="size"
-                        id="size"
-                        required
-                    >
+                    <select name="size" id="size"><option value="N/A">N/A (Accessories / One Size)</option>
 
                         <option value="">
                             Select a size
