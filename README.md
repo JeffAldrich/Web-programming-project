@@ -47,8 +47,5 @@ Installation:
 http://localhost/Web-programming-project/
 
 Admin account:
-
-http://localhost/JAC/admin/login.php
-
 gmail: admin@jac.com
 password: admin12345
