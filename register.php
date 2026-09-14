@@ -1,4 +1,14 @@
 <?php
+session_start();
+
+/*
+    ALREADY LOGGED IN CHECK
+    If the user is already logged in, redirect to home page
+*/
+if (isset($_SESSION["user_id"])) {
+    header("Location: index.php");
+    exit;
+}
 
 require_once "php/db.php";
 require_once "validation.php";

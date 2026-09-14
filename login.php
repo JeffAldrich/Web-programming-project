@@ -4,13 +4,26 @@ session_start();
 
 require_once "php/db.php";
 
- $email_error = "";
- $password_error = "";
- $general_error = "";
+/*
+    ALREADY LOGGED IN CHECK
+*/
+if (isset($_SESSION["user_id"])) {
+    header("Location: index.php");
+    exit;
+}
+
+if (isset($_SESSION["admin_id"])) {
+    header("Location: admin/dashboard.php");
+    exit;
+}
+
+$email_error    = "";
+$password_error = "";
+$general_error  = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $email = trim($_POST["email"] ?? "");
+    $email    = trim($_POST["email"] ?? "");
     $password = $_POST["password"] ?? "";
 
 
@@ -47,138 +60,171 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $password_error === ""
     ) {
 
-        $stmt = $conn->prepare("
+        /*
+            STEP 1: Check admins table first.
+            If the e-mail matches an admin account, authenticate against
+            the admins table and redirect to the admin dashboard.
+        */
+
+        $admin_matched = false;
+
+        $stmt_admin = $conn->prepare("
             SELECT
                 id,
                 first_name,
                 last_name,
                 email,
-                password,
-                last_login
-            FROM users
+                password
+            FROM admins
             WHERE email = ?
             LIMIT 1
         ");
 
-        if (!$stmt) {
+        if ($stmt_admin) {
 
-            $general_error = "A database error occurred.";
+            $stmt_admin->bind_param("s", $email);
+            $stmt_admin->execute();
+            $admin_result = $stmt_admin->get_result();
 
-        } else {
+            if ($admin_result->num_rows === 1) {
 
-            $stmt->bind_param(
-                "s",
-                $email
-            );
+                $admin_matched = true; // e-mail belongs to an admin
+                $admin = $admin_result->fetch_assoc();
 
-            if (!$stmt->execute()) {
-
-                $general_error = "Unable to process your login.";
-
-            } else {
-
-                $result = $stmt->get_result();
-
-                if ($result->num_rows === 1) {
-
-                    $user = $result->fetch_assoc();
-
+                if (password_verify($password, $admin["password"])) {
 
                     /*
-                        CHECK PASSWORD
+                        SUCCESSFUL ADMIN LOGIN
                     */
 
-                    if (
-                        password_verify(
-                            $password,
-                            $user["password"]
-                        )
-                    ) {
+                    session_regenerate_id(true);
 
-                        /*
-                            SUCCESSFUL LOGIN
-                        */
+                    $_SESSION["admin_id"]         = $admin["id"];
+                    $_SESSION["admin_first_name"] = $admin["first_name"];
+                    $_SESSION["admin_last_name"]  = $admin["last_name"];
+                    $_SESSION["admin_email"]       = $admin["email"];
 
-                        session_regenerate_id(true);
-
-                        $_SESSION["user_id"] =
-                            $user["id"];
-
-                        $_SESSION["first_name"] =
-                            $user["first_name"];
-
-                        $_SESSION["last_name"] =
-                            $user["last_name"];
-
-                        $_SESSION["email"] =
-                            $user["email"];
-
-
-                        /*
-                            WELCOME BACK CHECK (NEW)
-
-                            last_login is NULL      -> first time logging in
-                            last_login has a date   -> returning user
-                        */
-
-                        if ($user["last_login"] === null) {
-
-                            $_SESSION["welcome_popup"] = "first";
-
-                        } else {
-
-                            $_SESSION["welcome_popup"] = "back";
-                        }
-
-
-                        /*
-                            UPDATE last_login (NEW)
-
-                            saves this login, so the NEXT
-                            login shows the welcome back popup
-                        */
-
-                        $stmt_update = $conn->prepare("
-                            UPDATE users
-                            SET last_login = NOW()
-                            WHERE id = ?
-                        ");
-
-                        $stmt_update->bind_param(
-                            "i",
-                            $user["id"]
-                        );
-
-                        $stmt_update->execute();
-
-
-                        /*
-                            REDIRECT AFTER LOGIN
-                        */
-
-                        header("Location: index.php");
-                        exit;
-
-
-                    } else {
-
-                        /*
-                            WRONG PASSWORD
-                        */
-
-                        $password_error =
-                            "Incorrect password.";
-                    }
-
+                    header("Location: admin/dashboard.php");
+                    exit;
 
                 } else {
 
                     /*
-                        EMAIL DOES NOT EXIST
+                        Admin e-mail found but wrong password.
+                        Do NOT fall through to user check for security.
                     */
+                    $password_error = "Incorrect password.";
+                }
+            }
 
-                    $email_error =
-                        "No account was found with this e-mail.";
+            $stmt_admin->close();
+        }
+
+
+        /*
+            STEP 2: If the e-mail did not match any admin, check users table.
+        */
+
+        if (!$admin_matched) {
+
+            $stmt = $conn->prepare("
+                SELECT
+                    id,
+                    first_name,
+                    last_name,
+                    email,
+                    password,
+                    last_login
+                FROM users
+                WHERE email = ?
+                LIMIT 1
+            ");
+
+            if (!$stmt) {
+
+                $general_error = "A database error occurred.";
+
+            } else {
+
+                $stmt->bind_param("s", $email);
+
+                if (!$stmt->execute()) {
+
+                    $general_error = "Unable to process your login.";
+
+                } else {
+
+                    $result = $stmt->get_result();
+
+                    if ($result->num_rows === 1) {
+
+                        $user = $result->fetch_assoc();
+
+
+                        /*
+                            CHECK PASSWORD
+                        */
+
+                        if (password_verify($password, $user["password"])) {
+
+                            /*
+                                SUCCESSFUL USER LOGIN
+                            */
+
+                            session_regenerate_id(true);
+
+                            $_SESSION["user_id"]    = $user["id"];
+                            $_SESSION["first_name"] = $user["first_name"];
+                            $_SESSION["last_name"]  = $user["last_name"];
+                            $_SESSION["email"]      = $user["email"];
+
+
+                            /*
+                                WELCOME BACK CHECK
+
+                                last_login is NULL      -> first time logging in
+                                last_login has a date   -> returning user
+                            */
+
+                            if ($user["last_login"] === null) {
+                                $_SESSION["welcome_popup"] = "first";
+                            } else {
+                                $_SESSION["welcome_popup"] = "back";
+                            }
+
+
+                            /*
+                                UPDATE last_login
+                            */
+
+                            $stmt_update = $conn->prepare("
+                                UPDATE users
+                                SET last_login = NOW()
+                                WHERE id = ?
+                            ");
+
+                            $stmt_update->bind_param("i", $user["id"]);
+                            $stmt_update->execute();
+
+
+                            /*
+                                REDIRECT AFTER LOGIN
+                            */
+
+                            header("Location: index.php");
+                            exit;
+
+
+                        } else {
+
+                            $password_error = "Incorrect password.";
+                        }
+
+
+                    } else {
+
+                        $email_error = "No account was found with this e-mail.";
+                    }
                 }
             }
         }
@@ -335,6 +381,58 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
     <script src="script.js"></script>
+
+    <script>
+    /*
+        CROSS-TAB LOGIN DETECTION
+        If the user has multiple login tabs open and logs in on one tab,
+        the other tab immediately redirects to index.php when switched to or submitted.
+    */
+    (function () {
+        function checkLoginStatus() {
+            fetch('php/get_counts.php')
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data && data.logged_in) {
+                        localStorage.setItem('jac_logged_in', Date.now());
+                        window.location.replace('index.php');
+                    }
+                })
+                .catch(function () {});
+        }
+
+        // When user switches back to this tab
+        window.addEventListener('focus', checkLoginStatus);
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                checkLoginStatus();
+            }
+        });
+
+        // When another tab logs in and writes to localStorage
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'jac_logged_in') {
+                window.location.replace('index.php');
+            }
+        });
+
+        // Intercept form submission to prevent submitting if already logged in in another tab
+        var loginForm = document.querySelector('form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function (e) {
+                fetch('php/get_counts.php')
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data && data.logged_in) {
+                            e.preventDefault();
+                            window.location.replace('index.php');
+                        }
+                    })
+                    .catch(function () {});
+            });
+        }
+    })();
+    </script>
 
 </body>
 

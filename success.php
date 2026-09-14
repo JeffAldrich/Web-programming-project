@@ -42,6 +42,8 @@ if ($order_id) {
             id,
             user_id,
             total_amount,
+            payment_method,
+            payment_reference,
             status,
             shipping_name,
             shipping_email,
@@ -279,7 +281,14 @@ if ($order_id) {
                 </span>
 
                 <strong>
-                    Cash on Delivery
+                    <?= htmlspecialchars(
+                        $order["payment_method"] ?? "Cash on Delivery"
+                    ); ?>
+                    <?php if (!empty($order["payment_reference"])): ?>
+                        <small style="display: block; font-size: 11px; color: #666; font-weight: normal;">
+                            Ref: <?= htmlspecialchars($order["payment_reference"]); ?>
+                        </small>
+                    <?php endif; ?>
                 </strong>
 
             </div>

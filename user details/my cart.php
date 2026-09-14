@@ -264,7 +264,7 @@ if ($is_logged_in) {
 
                                 <p>₱<?php echo number_format($item['price'], 2); ?></p>
 
-                                <p>SIZE: <?php echo htmlspecialchars($item['size']); ?></p>
+                                <?php if (!empty($item['size']) && $item['size'] !== 'N/A'): ?><p>SIZE: <?php echo htmlspecialchars($item['size']); ?></p><?php endif; ?>
 
                                 <p>COLOR: <?php echo htmlspecialchars($item['color']); ?></p>
 
