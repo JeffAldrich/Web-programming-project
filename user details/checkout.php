@@ -415,12 +415,14 @@ foreach ($cart_items as $item) {
                                     ); ?>
                                 </p>
 
+                                <?php if (!empty($item["size"]) && $item["size"] !== "N/A"): ?>
                                 <p>
                                     SIZE:
                                     <?= htmlspecialchars(
                                         $item["size"]
                                     ); ?>
                                 </p>
+                                <?php endif; ?>
 
                                 <p>
                                     COLOR:
@@ -483,18 +485,73 @@ foreach ($cart_items as $item) {
 
                 <div class="payment-options">
 
-                    <label>
-
+                    <label class="payment-method-card active" id="card-gcash">
                         <input
                             type="radio"
-                            name="payment"
-                            value="Cash on Delivery"
+                            name="payment_choice"
+                            value="GCash"
                             checked
                         >
-
-                        Cash on Delivery
-
+                        <span>GCash</span>
                     </label>
+
+                    <label class="payment-method-card" id="card-maya">
+                        <input
+                            type="radio"
+                            name="payment_choice"
+                            value="Maya"
+                        >
+                        <span>Maya</span>
+                    </label>
+
+                    <label class="payment-method-card" id="card-bank">
+                        <input
+                            type="radio"
+                            name="payment_choice"
+                            value="Bank Transfer"
+                        >
+                        <span>Bank Transfer</span>
+                    </label>
+
+                </div>
+
+                <!-- ONLINE PAYMENT INSTRUCTIONS & PROOF UPLOAD -->
+                <div class="payment-instructions-box" id="online-payment-box" style="display: block;">
+
+                    <h3 id="payment-box-title">GCash Payment Details</h3>
+
+                    <div class="payment-account-details" id="payment-account-info">
+                        <!-- Dynamic details injected by JavaScript -->
+                    </div>
+
+                    <p style="font-size: 13px; color: #444; margin-bottom: 15px;">
+                        Please send the exact amount of <strong>₱<?= number_format($cart_total, 2); ?></strong> and provide your transaction reference number and screenshot below as proof of payment.
+                    </p>
+
+                    <div class="payment-inputs-grid">
+
+                        <div class="payment-input-group">
+                            <label for="payment-reference-input">Transaction Reference Number *</label>
+                            <input
+                                type="text"
+                                id="payment-reference-input"
+                                placeholder="e.g. 1002 9847 2819"
+                            >
+                        </div>
+
+                        <div class="payment-input-group">
+                            <label for="payment-proof-input">Upload Receipt / Screenshot *</label>
+                            <input
+                                type="file"
+                                id="payment-proof-input"
+                                accept="image/jpeg,image/png,image/webp"
+                            >
+                            <div class="receipt-preview-container" id="receipt-preview-box">
+                                <img src="" alt="Receipt Preview" class="receipt-preview-img" id="receipt-preview-img">
+                            </div>
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -516,6 +573,7 @@ foreach ($cart_items as $item) {
                 <form
                     action="../php/place_order.php"
                     method="POST"
+                    enctype="multipart/form-data"
                     id="place-order-form"
                 >
 
@@ -568,6 +626,16 @@ foreach ($cart_items as $item) {
                         value="Cash on Delivery"
                     >
 
+                    <input
+                        type="hidden"
+                        name="payment_reference"
+                        id="form-payment-reference"
+                        value=""
+                    >
+
+                    <!-- Real file input appended dynamically before submission -->
+                    <div id="hidden-file-holder" style="display: none;"></div>
+
                     <button
                         type="submit"
                         class="place-order-button"
@@ -593,151 +661,127 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        const form =
-            document.getElementById(
-                "place-order-form"
-            );
+        const form = document.getElementById("place-order-form");
+        if (!form) return;
 
-        if (!form) {
-            return;
+        const paymentChoices = document.querySelectorAll('input[name="payment_choice"]');
+        const onlineBox = document.getElementById("online-payment-box");
+        const boxTitle = document.getElementById("payment-box-title");
+        const accountInfo = document.getElementById("payment-account-info");
+        const refInput = document.getElementById("payment-reference-input");
+        const proofInput = document.getElementById("payment-proof-input");
+        const previewBox = document.getElementById("receipt-preview-box");
+        const previewImg = document.getElementById("receipt-preview-img");
+
+        const accounts = {
+            "GCash": {
+                title: "GCash Payment Details",
+                details: "<div><strong>Account Name:</strong> JAC Store Philippines</div><div><strong>GCash Number:</strong> 0917-123-4567</div><div><strong>Account Type:</strong> Verified Merchant</div>"
+            },
+            "Maya": {
+                title: "Maya Payment Details",
+                details: "<div><strong>Account Name:</strong> JAC Menswear Inc.</div><div><strong>Maya Number:</strong> 0917-123-4567</div><div><strong>Account Type:</strong> Business Account</div>"
+            },
+            "Bank Transfer": {
+                title: "Bank Transfer Details",
+                details: "<div><strong>Bank:</strong> BDO Unibank / BPI</div><div><strong>Account Name:</strong> JAC Menswear Corporation</div><div><strong>Account Number:</strong> 0012-3456-7890</div>"
+            }
+        };
+
+        function updatePaymentUI() {
+            let selected = "GCash";
+            paymentChoices.forEach(radio => {
+                const parent = radio.closest(".payment-method-card");
+                if (radio.checked) {
+                    selected = radio.value;
+                    if (parent) parent.classList.add("active");
+                } else {
+                    if (parent) parent.classList.remove("active");
+                }
+            });
+
+            onlineBox.style.display = "block";
+            if (accounts[selected]) {
+                boxTitle.textContent = accounts[selected].title;
+                accountInfo.innerHTML = accounts[selected].details;
+            }
         }
 
+        paymentChoices.forEach(radio => {
+            radio.addEventListener("change", updatePaymentUI);
+        });
+
+        // Initialize display for default choice (GCash)
+        updatePaymentUI();
+
+        // Image file preview
+        if (proofInput) {
+            proofInput.addEventListener("change", function () {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewImg.src = e.target.result;
+                        previewBox.style.display = "block";
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewBox.style.display = "none";
+                }
+            });
+        }
 
         form.addEventListener(
             "submit",
             function (event) {
 
-                const name =
-                    document
-                        .getElementById(
-                            "checkout-name"
-                        )
-                        .value
-                        .trim();
+                const name = document.getElementById("checkout-name").value.trim();
+                const email = document.getElementById("checkout-email").value.trim();
+                const phone = document.getElementById("checkout-phone").value.trim();
+                const address = document.getElementById("checkout-address").value.trim();
+                const city = document.getElementById("checkout-city").value.trim();
+                const province = document.getElementById("checkout-province").value.trim();
+                const postalCode = document.getElementById("checkout-postal-code").value.trim();
 
-                const email =
-                    document
-                        .getElementById(
-                            "checkout-email"
-                        )
-                        .value
-                        .trim();
-
-                const phone =
-                    document
-                        .getElementById(
-                            "checkout-phone"
-                        )
-                        .value
-                        .trim();
-
-                const address =
-                    document
-                        .getElementById(
-                            "checkout-address"
-                        )
-                        .value
-                        .trim();
-
-                const city =
-                    document
-                        .getElementById(
-                            "checkout-city"
-                        )
-                        .value
-                        .trim();
-
-                const province =
-                    document
-                        .getElementById(
-                            "checkout-province"
-                        )
-                        .value
-                        .trim();
-
-                const postalCode =
-                    document
-                        .getElementById(
-                            "checkout-postal-code"
-                        )
-                        .value
-                        .trim();
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | VALIDATE
-                |--------------------------------------------------------------------------
-                */
-
-                if (
-                    !name ||
-                    !email ||
-                    !phone ||
-                    !address ||
-                    !city ||
-                    !province ||
-                    !postalCode
-                ) {
-
+                if (!name || !email || !phone || !address || !city || !province || !postalCode) {
                     event.preventDefault();
-
-                    alert(
-                        "Please complete all shipping information."
-                    );
-
+                    alert("Please complete all shipping information.");
                     return;
                 }
 
+                let selectedPayment = "GCash";
+                paymentChoices.forEach(radio => {
+                    if (radio.checked) selectedPayment = radio.value;
+                });
 
-                /*
-                |--------------------------------------------------------------------------
-                | COPY FORM VALUES
-                |--------------------------------------------------------------------------
-                */
+                const reference = refInput.value.trim();
+                if (!reference) {
+                    event.preventDefault();
+                    alert("Please enter the transaction reference number for your " + selectedPayment + " payment.");
+                    refInput.focus();
+                    return;
+                }
 
-                document
-                    .getElementById(
-                        "form-shipping-name"
-                    )
-                    .value = name;
+                if (!proofInput.files || proofInput.files.length === 0) {
+                    event.preventDefault();
+                    alert("Please upload your screenshot/photo receipt as proof of payment.");
+                    proofInput.focus();
+                    return;
+                }
 
-                document
-                    .getElementById(
-                        "form-shipping-email"
-                    )
-                    .value = email;
+                document.getElementById("form-payment-reference").value = reference;
+                document.getElementById("form-shipping-name").value = name;
+                document.getElementById("form-shipping-email").value = email;
+                document.getElementById("form-shipping-phone").value = phone;
+                document.getElementById("form-shipping-address").value = address;
+                document.getElementById("form-shipping-city").value = city;
+                document.getElementById("form-shipping-province").value = province;
+                document.getElementById("form-shipping-postal-code").value = postalCode;
+                document.getElementById("form-payment-method").value = selectedPayment;
 
-                document
-                    .getElementById(
-                        "form-shipping-phone"
-                    )
-                    .value = phone;
-
-                document
-                    .getElementById(
-                        "form-shipping-address"
-                    )
-                    .value = address;
-
-                document
-                    .getElementById(
-                        "form-shipping-city"
-                    )
-                    .value = city;
-
-                document
-                    .getElementById(
-                        "form-shipping-province"
-                    )
-                    .value = province;
-
-                document
-                    .getElementById(
-                        "form-shipping-postal-code"
-                    )
-                    .value = postalCode;
-
+                // Move/copy file input to the form before submit
+                proofInput.name = "payment_proof";
+                form.appendChild(proofInput);
             }
         );
 

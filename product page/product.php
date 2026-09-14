@@ -18,9 +18,10 @@ if ($product_id <= 0) {
 ========================= */
 
  $stmt = $conn->prepare("
-    SELECT id, name, price, image, description
-    FROM products
-    WHERE id = ?
+    SELECT p.id, p.name, p.price, p.image, p.description, p.category_id, c.name AS category_name
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.id = ?
     LIMIT 1
 ");
 
@@ -33,6 +34,12 @@ if (!$stmt) {
 
  $product = $stmt->get_result()->fetch_assoc();
  $stmt->close();
+
+$is_accessories = false;
+if ($product) {
+    $cat_name = strtolower(trim($product['category_name'] ?? ''));
+    $is_accessories = ($cat_name === 'accessories');
+}
 
 if (!$product) {
     die("Product not found.");
@@ -185,6 +192,7 @@ foreach ($variants as $variant) {
 
 
             <!-- SIZE -->
+            <?php if (!$is_accessories): ?>
 
             <h3>SIZE</h3>
 
@@ -196,6 +204,8 @@ foreach ($variants as $variant) {
                 <button type="button" class="size-button" data-size="XL">XL</button>
 
             </div>
+
+            <?php endif; ?>
 
 
             <!-- COLOR -->
@@ -294,6 +304,7 @@ foreach ($variants as $variant) {
 <script>
 
     window.JAC_IS_LOGGED_IN = <?= $is_logged_in ? "true" : "false" ?>;
+    window.JAC_IS_ACCESSORIES = <?= $is_accessories ? 'true' : 'false' ?>;
     window.JAC_PRODUCT_ID = <?= $product_id ?>;
     window.JAC_PRODUCT_VARIANTS = <?= json_encode($variant_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
@@ -388,16 +399,25 @@ foreach ($variants as $variant) {
         variantInput.value = "";
         stockMessage.textContent = "";
 
-        if (selectedSize === "" || selectedColor === "") {
-            return;
+        if (window.JAC_IS_ACCESSORIES) {
+            if (selectedColor === "") {
+                return;
+            }
+        } else {
+            if (selectedSize === "" || selectedColor === "") {
+                return;
+            }
         }
 
         const variant = window.JAC_PRODUCT_VARIANTS.find(function (item) {
+            if (window.JAC_IS_ACCESSORIES) {
+                return item.color === selectedColor;
+            }
             return item.size === selectedSize && item.color === selectedColor;
         });
 
         if (!variant) {
-            stockMessage.textContent = "This combination is unavailable.";
+            stockMessage.textContent = "OUT OF STOCK";
             return;
         }
 
@@ -461,7 +481,11 @@ foreach ($variants as $variant) {
             const variantId = parseInt(variantInput.value);
 
             if (!variantId) {
-                showToast("Please select a size and color.", false);
+                if (window.JAC_IS_ACCESSORIES) {
+                    showToast("Please select a color.", false);
+                } else {
+                    showToast("Please select a size and color.", false);
+                }
                 return;
             }
 

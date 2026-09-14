@@ -170,26 +170,6 @@ if ($tab !== "profile" && $tab !== "security") {
 
                 <?php if ($tab === "profile"): ?>
 
-                    <!-- STATS -->
-                    <div class="account-stats">
-                        <div class="account-stat">
-                            <strong><?php echo $stats["orders"]; ?></strong>
-                            <span>ORDERS</span>
-                        </div>
-                        <div class="account-stat">
-                            <strong><?php echo $stats["history"]; ?></strong>
-                            <span>HISTORY</span>
-                        </div>
-                        <div class="account-stat">
-                            <strong><?php echo $stats["wishlist"]; ?></strong>
-                            <span>WISHLIST</span>
-                        </div>
-                        <div class="account-stat">
-                            <strong><?php echo $stats["cart"]; ?></strong>
-                            <span>IN CART</span>
-                        </div>
-                    </div>
-
                     <!-- PROFILE FORM -->
                     <div class="account-section-card">
 
