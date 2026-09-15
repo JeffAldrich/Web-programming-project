@@ -31,7 +31,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 if ($stmt->get_result()->num_rows > 0) {
     $stmt->close();
-    echo json_encode(["success" => true, "message" => "You're already subscribed!"]);
+    echo json_encode(["success" => true, "already" => true, "email" => $email, "message" => "This email is already subscribed"]);
     exit;
 }
  $stmt->close();
@@ -47,7 +47,7 @@ if ($stmt->get_result()->num_rows > 0) {
  $stmt->bind_param("s", $email);
 
 if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Subscribed! Welcome to JAC."]);
+    echo json_encode(["success" => true, "already" => false, "email" => $email, "message" => "Subscribed"]);
 } else {
     echo json_encode(["success" => false, "message" => "Something went wrong. Please try again."]);
 }

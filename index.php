@@ -364,12 +364,12 @@ if (isset($_SESSION["welcome_popup"])) {
                 style inspiration.
             </p>
 
-            <form id="newsletter-form">
+            <form id="newsletter-form" onsubmit="return false;">
 
                 <input
                     type="email"
                     id="newsletter-email"
-                    name="newsletter-email"
+                    name="email"
                     placeholder="Enter your e-mail"
                     required
                 >
@@ -535,7 +535,64 @@ if (isset($_SESSION["welcome_popup"])) {
     <?php endif; ?>
 
 
-    <script src="script.js"></script>
+
+
+    <script src="script.js?v=1789447156"></script>
+
+
+<script>
+(function() {
+    var form = document.getElementById("newsletter-form");
+    if (!form) return;
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var input = document.getElementById("newsletter-email") || form.querySelector("input[type='email']");
+        var btn = form.querySelector("button");
+        var email = input ? input.value.trim() : "";
+
+        if (!email) {
+            if (typeof showToast === "function") showToast("Please enter your e-mail.", false);
+            return;
+        }
+
+        if (btn) btn.disabled = true;
+
+        var data = new FormData();
+        data.append("email", email);
+
+        fetch("php/subscribe.php", {
+            method: "POST",
+            body: data
+        })
+        .then(function(res) {
+            return res.json();
+        })
+        .then(function(res) {
+            if (typeof showToast === "function") {
+                showToast(res.message, res.already ? false : res.success);
+            } else {
+                alert(res.message);
+            }
+            if (res.success && !res.already && input) {
+                input.value = "";
+            }
+        })
+        .catch(function(err) {
+            if (typeof showToast === "function") {
+                showToast("Something went wrong. Please try again.", false);
+            } else {
+                alert("Something went wrong.");
+            }
+        })
+        .finally(function() {
+            if (btn) btn.disabled = false;
+        });
+    });
+})();
+</script>
 
 </body>
 

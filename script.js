@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var data = new FormData()
     data.append('email', email)
 
-    fetch('/JAC/php/subscribe.php', {
+    fetch('php/subscribe.php', {
       method: 'POST',
       body: data
     })
@@ -445,10 +445,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return r.json()
       })
       .then(function (result) {
-        showToast(result.message, result.success)
-
-        if (result.success) {
+        if (result.already) {
+          showToast(result.message, false)
+        } else if (result.success) {
+          showToast(result.message, true)
           input.value = ''
+        } else {
+          showToast(result.message, false)
         }
       })
       .catch(function () {
@@ -459,3 +462,46 @@ document.addEventListener('DOMContentLoaded', function () {
       })
   })
 })
+
+window.handleNewsletterSubmit = function (form) {
+  if (!form) form = document.getElementById('newsletter-form')
+  if (!form) return
+
+  var input = form.querySelector('input[type="email"]')
+  var button = form.querySelector('button')
+  var email = input ? input.value.trim() : ''
+
+  if (!email) {
+    showToast('Please enter your e-mail.', false)
+    return
+  }
+
+  if (button) button.disabled = true
+
+  var data = new FormData()
+  data.append('email', email)
+
+  fetch('php/subscribe.php', {
+    method: 'POST',
+    body: data
+  })
+    .then(function (r) {
+      return r.json()
+    })
+    .then(function (result) {
+      if (result.already) {
+        showToast(result.message, false)
+      } else if (result.success) {
+        showToast(result.message, true)
+        if (input) input.value = ''
+      } else {
+        showToast(result.message, false)
+      }
+    })
+    .catch(function () {
+      showToast('Something went wrong. Please try again.', false)
+    })
+    .finally(function () {
+      if (button) button.disabled = false
+    })
+}
