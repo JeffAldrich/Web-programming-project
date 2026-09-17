@@ -61,172 +61,116 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     ) {
 
         /*
-            STEP 1: Check admins table first.
-            If the e-mail matches an admin account, authenticate against
-            the admins table and redirect to the admin dashboard.
+            SINGLE USERS TABLE LOGIN
+            Queries the single `users` table, verifies password,
+            and uses if / else if on the `role` column to direct
+            the user to the Admin Dashboard or Customer Storefront.
         */
 
-        $admin_matched = false;
-
-        $stmt_admin = $conn->prepare("
+        $stmt = $conn->prepare("
             SELECT
                 id,
                 first_name,
                 last_name,
                 email,
-                password
-            FROM admins
+                password,
+                role,
+                last_login
+            FROM users
             WHERE email = ?
             LIMIT 1
         ");
 
-        if ($stmt_admin) {
+        if (!$stmt) {
 
-            $stmt_admin->bind_param("s", $email);
-            $stmt_admin->execute();
-            $admin_result = $stmt_admin->get_result();
+            $general_error = "A database error occurred.";
 
-            if ($admin_result->num_rows === 1) {
+        } else {
 
-                $admin_matched = true; // e-mail belongs to an admin
-                $admin = $admin_result->fetch_assoc();
+            $stmt->bind_param("s", $email);
 
-                if (password_verify($password, $admin["password"])) {
+            if (!$stmt->execute()) {
 
-                    /*
-                        SUCCESSFUL ADMIN LOGIN
-                    */
-
-                    session_regenerate_id(true);
-
-                    $_SESSION["admin_id"]         = $admin["id"];
-                    $_SESSION["admin_first_name"] = $admin["first_name"];
-                    $_SESSION["admin_last_name"]  = $admin["last_name"];
-                    $_SESSION["admin_email"]       = $admin["email"];
-
-                    header("Location: admin/dashboard.php");
-                    exit;
-
-                } else {
-
-                    /*
-                        Admin e-mail found but wrong password.
-                        Do NOT fall through to user check for security.
-                    */
-                    $password_error = "Incorrect password.";
-                }
-            }
-
-            $stmt_admin->close();
-        }
-
-
-        /*
-            STEP 2: If the e-mail did not match any admin, check users table.
-        */
-
-        if (!$admin_matched) {
-
-            $stmt = $conn->prepare("
-                SELECT
-                    id,
-                    first_name,
-                    last_name,
-                    email,
-                    password,
-                    last_login
-                FROM users
-                WHERE email = ?
-                LIMIT 1
-            ");
-
-            if (!$stmt) {
-
-                $general_error = "A database error occurred.";
+                $general_error = "Unable to process your login.";
 
             } else {
 
-                $stmt->bind_param("s", $email);
+                $result = $stmt->get_result();
 
-                if (!$stmt->execute()) {
+                if ($result->num_rows === 1) {
 
-                    $general_error = "Unable to process your login.";
+                    $user = $result->fetch_assoc();
 
-                } else {
+                    /*
+                        VERIFY PASSWORD
+                    */
+                    if (password_verify($password, $user["password"])) {
 
-                    $result = $stmt->get_result();
+                        session_regenerate_id(true);
 
-                    if ($result->num_rows === 1) {
-
-                        $user = $result->fetch_assoc();
-
+                        $user_role = strtolower(trim($user["role"] ?? "customer"));
 
                         /*
-                            CHECK PASSWORD
+                            ROLE-BASED REDIRECTION (if / else if)
                         */
+                        if ($user_role === "admin") {
 
-                        if (password_verify($password, $user["password"])) {
+                            $_SESSION["admin_id"]         = $user["id"];
+                            $_SESSION["admin_first_name"] = $user["first_name"];
+                            $_SESSION["admin_last_name"]  = $user["last_name"];
+                            $_SESSION["admin_email"]      = $user["email"];
+                            $_SESSION["role"]             = "admin";
 
-                            /*
-                                SUCCESSFUL USER LOGIN
-                            */
+                            header("Location: admin/dashboard.php");
+                            exit;
 
-                            session_regenerate_id(true);
+                        } elseif ($user_role === "customer") {
 
                             $_SESSION["user_id"]    = $user["id"];
                             $_SESSION["first_name"] = $user["first_name"];
                             $_SESSION["last_name"]  = $user["last_name"];
                             $_SESSION["email"]      = $user["email"];
+                            $_SESSION["role"]       = "customer";
 
-
-                            /*
-                                WELCOME BACK CHECK
-
-                                last_login is NULL      -> first time logging in
-                                last_login has a date   -> returning user
-                            */
-
+                            /* Welcome back popup flag */
                             if ($user["last_login"] === null) {
                                 $_SESSION["welcome_popup"] = "first";
                             } else {
                                 $_SESSION["welcome_popup"] = "back";
                             }
 
-
-                            /*
-                                UPDATE last_login
-                            */
-
+                            /* Update last login timestamp */
                             $stmt_update = $conn->prepare("
                                 UPDATE users
                                 SET last_login = NOW()
                                 WHERE id = ?
                             ");
-
                             $stmt_update->bind_param("i", $user["id"]);
                             $stmt_update->execute();
-
-
-                            /*
-                                REDIRECT AFTER LOGIN
-                            */
+                            $stmt_update->close();
 
                             header("Location: index.php");
                             exit;
 
-
                         } else {
-
-                            $password_error = "Incorrect password.";
+                            $general_error = "Invalid account role assigned.";
                         }
-
 
                     } else {
 
-                        $email_error = "No account was found with this e-mail.";
+                        $password_error = "Incorrect password.";
+
                     }
+
+                } else {
+
+                    $email_error = "No account was found with this e-mail.";
+
                 }
+
             }
+
+            $stmt->close();
         }
     }
 }

@@ -32,6 +32,7 @@ $stmt = $conn->prepare("
         postal_code,
         created_at
     FROM users
+    WHERE role = 'customer' OR role IS NULL
     ORDER BY created_at DESC
 ");
 

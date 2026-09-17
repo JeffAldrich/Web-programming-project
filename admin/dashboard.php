@@ -53,6 +53,7 @@ if ($stmt) {
 $stmt = $conn->prepare("
     SELECT COUNT(*) AS total
     FROM users
+    WHERE role = 'customer' OR role IS NULL
 ");
 
 if ($stmt) {
